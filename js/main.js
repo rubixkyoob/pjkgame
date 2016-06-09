@@ -35,9 +35,8 @@ var directionalLight = new THREE.DirectionalLight(0xffffff);
 directionalLight.position.set(0,1,0);
 scene.add(directionalLight);
 
-scene.add(new THREE.GridHelper(10, 1));
 
-var cubeSize = 3;
+var cubeSize = 7;
 
 var geometry = new THREE.BoxGeometry( cubeSize, cubeSize, cubeSize );
 var material = new THREE.MeshBasicMaterial( { color: 0x000000 } );
@@ -49,10 +48,20 @@ cubes.add(cube1);
 // Load the Blender model
 var cubie = null;
 var loader = new THREE.JSONLoader();
-loader.load('js/cube3.json', function( geometry, materials) {
-	cubie = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(cubieMaterials) );
+loader.load('cube3.json', function( geometry, materials) {
+	//cubie = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
 	//cubie.position.x = 1;
-	scene.add(cubie);
+	for(var i = -1; i < 2; i++) {
+		for(var j = -1; j < 2; j++) {
+			for(var k = -1; k < 2; k++) {
+				cubie = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
+				cubie.position.x = i*2.2;
+				cubie.position.y = j*2.2;
+				cubie.position.z = k*2.2;
+				cubes.add(cubie);
+			}
+		}
+	}
 });
 
 var geometry2 = new THREE.BoxGeometry( cubeSize * 0.92, cubeSize * 0.92, cubeSize * 0.92 );
@@ -61,7 +70,7 @@ var cube2 = new THREE.Mesh( geometry2, material2 );
 //cube2.position.x += 0.22;
 //cube2.position.y += 0.22;
 //cube2.position.z += 0.22;
-cubes.add(cube2);
+//cubes.add(cube2);
 scene.add( cubes );
 cubes.position.z = -5;
 
