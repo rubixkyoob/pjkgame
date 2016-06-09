@@ -4,8 +4,7 @@ var sqrSize = Math.min(window.innerWidth, window.innerHeight );
 var wWidth;
 var wHeight;
 
-
-
+// Screen Resizing
 window.addEventListener('resize', resizeCanvas, false);
 
 function resizeCanvas() {
@@ -20,6 +19,7 @@ function init() {
 
 init();
 
+// Init the three.js scene
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera( 75, wWidth/wHeight, 0.1, 1000 );
 
@@ -27,6 +27,15 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize( wWidth, wHeight );
 renderer.setClearColor( 0xffffff, 1);
 document.body.appendChild( renderer.domElement );
+
+// Lights
+var amientLight = new THREE.AmbientLight(0xffffff)
+scene.add(amientLight);
+var directionalLight = new THREE.DirectionalLight(0xffffff);
+directionalLight.position.set(0,1,0);
+scene.add(directionalLight);
+
+scene.add(new THREE.GridHelper(10, 1));
 
 var cubeSize = 3;
 
@@ -36,6 +45,15 @@ material.side = THREE.BackSide;
 var cube1 = new THREE.Mesh( geometry, material );
 var cubes = new THREE.Object3D();
 cubes.add(cube1);
+
+// Load the Blender model
+var cubie = null;
+var loader = new THREE.JSONLoader();
+loader.load('js/cube3.json', function( geometry, materials) {
+	cubie = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(cubieMaterials) );
+	//cubie.position.x = 1;
+	scene.add(cubie);
+});
 
 var geometry2 = new THREE.BoxGeometry( cubeSize * 0.92, cubeSize * 0.92, cubeSize * 0.92 );
 var material2 = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
