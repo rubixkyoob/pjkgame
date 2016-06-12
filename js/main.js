@@ -43,7 +43,7 @@ var material = new THREE.MeshBasicMaterial( { color: 0x000000 } );
 material.side = THREE.BackSide;
 var cube1 = new THREE.Mesh( geometry, material );
 var cubes = new THREE.Object3D();
-cubes.add(cube1);
+//cubes.add(cube1);
 
 // Load the Blender model
 var cubie = null;
@@ -59,6 +59,26 @@ loader.load('cube3.json', function( geometry, materials) {
 				cubie.position.y = j*2.2;
 				cubie.position.z = k*2.2;
 				cubes.add(cubie);
+			}
+		}
+	}
+});
+
+var i = -1, j = -1, k = -1;
+var cubieOutline = null;
+var loader = new THREE.JSONLoader();
+loader.load('cubeOutline.json', function( geometry, materials) {
+	for(var i = -1; i < 2; i++) {
+		for(var j = -1; j < 2; j++) {
+			for(var k = -1; k < 2; k++) {
+				var mat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+				mat.side = THREE.BackSide;
+				cubieOutline = new THREE.Mesh( geometry, mat );
+				cubieOutline.position.x = i*2.2;
+				cubieOutline.position.y = j*2.2;
+				cubieOutline.position.z = k*2.2;
+				cubieOutline.scale *= 0.95;
+				cubes.add(cubieOutline);
 			}
 		}
 	}
