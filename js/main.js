@@ -10,7 +10,7 @@ var lastTick = Date.now();
 var finalPosition = { x: 0, y: 0, z: 0 };
 var moveSpeed = 1;
 var oscillSpeed = 0.01;
-var moveThreshold = 0.1;	//distance from finalPosition to start oscillating
+var moveThreshold = 0.2;	//distance from finalPosition to start oscillating
 
 
 function init() {
@@ -35,6 +35,7 @@ var currState = cubeState.LERPING;
 
 // Event Listeners
 window.addEventListener('resize', resizeCanvas, false);
+document.getElementsByTagName('canvas')[0].addEventListener( 'mousemove', mouseOver );
 document.addEventListener( 'mousedown', onMouseDown, false);
 document.addEventListener( 'touchstart', onTouchStart, false);
 
@@ -54,6 +55,25 @@ function onMouseDown( event ) {
 
 function onTouchStart( event ) {
 	
+}
+
+function mouseOver( event ) {
+	var vector = new THREE.Vector3();
+
+	vector.set(
+		( event.clientX / window.innerWidth ) * 2 - 1,
+		- ( event.clientY / window.innerHeight ) * 2 + 1,
+		0.5 );
+	
+	vector.unproject( camera );
+	
+	var dir = vector.sub( camera.position ).normalize();
+	
+	var distance = - camera.position.z / dir.z;
+	
+	var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+	
+	debug.innerHTML = "x: " + pos.x + " y: " + pos.y;
 }
 
 function initScene() {
@@ -157,6 +177,10 @@ function updateCubes() {
 		case cubeState.OSCILLATING:
 			var dist = distance(cubes.position, finalPosition);
 			cubes.acceleration.y = (deltaTime * oscillSpeed * dist.y / Math.abs(dist.y));
+			if(cubes.position.y > moveThreshold)
+				cubes.position.y = moveThreshold;
+			else if(cubes.position.y < -moveThreshold)
+				cubes.position.y = -moveThreshold;
 			break;
 		default:
 		
