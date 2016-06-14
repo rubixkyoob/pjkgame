@@ -12,13 +12,6 @@ var moveSpeed = 1;
 var oscillSpeed = 0.01;
 var moveThreshold = 0.1;	//distance from finalPosition to start oscillating
 
-// Screen Resizing
-window.addEventListener('resize', resizeCanvas, false);
-
-function resizeCanvas() {
-	var size = Math.min(window.innerWidth, window.innerHeight );
-	renderer.setSize( size, size );
-}
 
 function init() {
 	wWidth = sqrSize;
@@ -40,8 +33,31 @@ document.body.appendChild( renderer.domElement );
 var cubes = new THREE.Object3D();
 var currState = cubeState.LERPING;
 
-// Lights
+// Event Listeners
+window.addEventListener('resize', resizeCanvas, false);
+document.addEventListener( 'mousedown', onMouseDown, false);
+document.addEventListener( 'touchstart', onTouchStart, false);
+
+function resizeCanvas() {
+	//var size = Math.min(window.innerWidth, window.innerHeight );
+	//renderer.setSize( size, size );
+	
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+	
+	renderer.setSize( window.innerWidth, window.innerHeight );
+}
+
+function onMouseDown( event ) {
+	
+}
+
+function onTouchStart( event ) {
+	
+}
+
 function initScene() {
+	// Lights
 	var amientLight = new THREE.AmbientLight(0xffffff)
 	scene.add(amientLight);
 	var directionalLight = new THREE.DirectionalLight(0xffffff);
@@ -50,6 +66,7 @@ function initScene() {
 	
 	var cubeSize = 7;
 	
+	// Objects
 	var geometry = new THREE.BoxGeometry( cubeSize, cubeSize, cubeSize );
 	var material = new THREE.MeshBasicMaterial( { color: 0x000000 } );
 	material.side = THREE.BackSide;
@@ -116,7 +133,7 @@ var render = function () {
 	// update the time variables
 	deltaTime = (Date.now() - lastTick) / 1000.0;
 	lastTick = Date.now();
-	debug.innerHTML = "Y: " + cubes.position.y;
+	//debug.innerHTML = "Y: " + cubes.position.y;
 	
 	requestAnimationFrame( render );
 
