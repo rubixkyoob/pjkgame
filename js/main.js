@@ -9,7 +9,7 @@ var lastTick = Date.now();
 
 var finalPosition = { x: 0, y: 0, z: 0 };
 var moveSpeed = 1;
-var oscillSpeed = 0.1;
+var oscillSpeed = 0.01;
 var moveThreshold = 0.1;	//distance from finalPosition to start oscillating
 
 // Screen Resizing
@@ -139,7 +139,7 @@ function updateCubes() {
 			break;
 		case cubeState.OSCILLATING:
 			var dist = distance(cubes.position, finalPosition);
-			cubes.acceleration.y = (deltaTime * oscillSpeed * dist.y)
+			cubes.acceleration.y = (deltaTime * oscillSpeed * dist.y / Math.abs(dist.y));
 			break;
 		default:
 		
