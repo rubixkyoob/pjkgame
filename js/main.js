@@ -12,6 +12,15 @@ var moveSpeed = 1;
 var oscillSpeed = 0.01;
 var moveThreshold = 0.2;	//distance from finalPosition to start oscillating
 
+var fixedRotation = {
+	x: Math.PI + 0.4,
+	y: -0.9,
+	z: -0.4
+};
+var minRotDist = 8;
+var isRotating = false;
+var snapBackSpeed = 1;
+
 
 function init() {
 	wWidth = sqrSize;
@@ -40,8 +49,6 @@ document.addEventListener( 'mousedown', onMouseDown, false);
 document.addEventListener( 'touchstart', onTouchStart, false);
 
 function resizeCanvas() {
-	//var size = Math.min(window.innerWidth, window.innerHeight );
-	//renderer.setSize( size, size );
 	
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
@@ -72,6 +79,16 @@ function mouseOver( event ) {
 	var distance = - camera.position.z / dir.z;
 	
 	var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+	var dist = getDistance(pos, {x: 0, y: 0, z: 0});
+	
+	if(dist.magnitude < minRotDist) {
+		isRotating = true;
+		cubes.rotation.x = fixedRotation.x - dist.y * Math.PI / 180;
+		cubes.rotation.y = fixedRotation.y - dist.x * Math.PI / 180;
+	}
+	else
+		isRotating = false;
+	
 	
 	debug.innerHTML = "x: " + pos.x + " y: " + pos.y;
 }
@@ -110,25 +127,6 @@ function initScene() {
 		}
 	});
 	
-	// Load the outside model
-	/*var cubieOutline = null;
-	var loader = new THREE.JSONLoader();
-	loader.load('cubeOutline.json', function( geometry, materials) {
-		for(var i = -1; i < 2; i++) {
-			for(var j = -1; j < 2; j++) {
-				for(var k = -1; k < 2; k++) {
-					var mat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-					mat.side = THREE.BackSide;
-					cubieOutline = new THREE.Mesh( geometry, mat );
-					cubieOutline.position.x = i*2.2;
-					cubieOutline.position.y = j*2.2;
-					cubieOutline.position.z = k*2.2;
-					cubieOutline.scale *= 0.95;
-					cubes.add(cubieOutline);
-				}
-			}
-		}
-	});*/
 	
 	var geometry2 = new THREE.BoxGeometry( cubeSize * 0.92, cubeSize * 0.92, cubeSize * 0.92 );
 	var material2 = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
@@ -142,9 +140,9 @@ function initScene() {
 	cubes.position.y = 20;
 	cubes.velocity = {x: 0, y: 0, z: 0};
 	cubes.acceleration = {x: 0, y: 0, z: 0};
-	cubes.rotation.x = Math.PI + 0.4;
-	cubes.rotation.y = -0.9;
-	cubes.rotation.z = -0.4;
+	cubes.rotation.x = fixedRotation.x;
+	cubes.rotation.y = fixedRotation.y;
+	cubes.rotation.z = fixedRotation.z;
 	
 	camera.position.z = 15;
 }
@@ -167,7 +165,7 @@ function updateCubes() {
 	
 	switch(currState) {
 		case cubeState.LERPING:
-			var dist = distance(cubes.position, finalPosition);
+			var dist = getDistance(cubes.position, finalPosition);
 			cubes.velocity.y = ( deltaTime * moveSpeed * dist.y) ;
 			//debug.innerHTML = dist.y;
 			if(Math.abs(dist.y) < moveThreshold) {
@@ -175,7 +173,7 @@ function updateCubes() {
 			}
 			break;
 		case cubeState.OSCILLATING:
-			var dist = distance(cubes.position, finalPosition);
+			var dist = getDistance(cubes.position, finalPosition);
 			cubes.acceleration.y = (deltaTime * oscillSpeed * dist.y / Math.abs(dist.y));
 			if(cubes.position.y > moveThreshold)
 				cubes.position.y = moveThreshold;
@@ -187,21 +185,32 @@ function updateCubes() {
 			break;
 	}
 	
+	// update physics
 	cubes.velocity.x += cubes.acceleration.x;
 	cubes.velocity.y += cubes.acceleration.y;
 	cubes.velocity.z += cubes.acceleration.z;
 	cubes.position.x += cubes.velocity.x;
 	cubes.position.y += cubes.velocity.y;
 	cubes.position.z += cubes.velocity.z;
+	
+	//update rotation
+	if(!isRotating) {
+		// Lerp back to origin
+		var rotDist = getDistance(cubes.rotation, fixedRotation);
+		cubes.rotation.x += (deltaTime * snapBackSpeed * rotDist.x);
+		cubes.rotation.y += (deltaTime * snapBackSpeed * rotDist.y);
+	}
 }
 
-function distance(initialPos, finalPos) {
-	return {
-		x: finalPos.x - initialPos.x,
-		y: finalPos.y - initialPos.y,
-		z: finalPos.z - initialPos.z
-	};
+function getDistance(initialPos, finalPos) {
+	var dist = {x: 0, y: 0, z: 0, magnitude: 0};
+	dist.x = finalPos.x - initialPos.x;
+	dist.y = finalPos.y - initialPos.y;
+	dist.z = finalPos.z - initialPos.z;
+	dist.magnitude = Math.sqrt(Math.pow(dist.x, 2) + Math.pow(dist.y, 2) + Math.pow(dist.z, 2));
+	return dist;
 }
+
 
 initScene();
 resizeCanvas();
