@@ -40,6 +40,9 @@ renderer.setClearColor( 0xffffff, 1);
 document.body.appendChild( renderer.domElement );
 
 var cubes = new THREE.Object3D();
+var yellowPlane = new THREE.Object3D();
+var redPlane = new THREE.Object3D();
+var bluePlane = new THREE.Object3D();
 var currState = cubeState.LERPING;
 var raycaster = new THREE.Raycaster();
 
@@ -150,6 +153,27 @@ function initScene() {
 	//cube2.position.y += 0.22;
 	//cube2.position.z += 0.22;
 	//cubes.add(cube2);
+	
+	// Selector planes geometry
+	var planeSize = 7;
+	var geometry = new THREE.PlaneGeometry( planeSize, planeSize, 1, 1 );
+	var ymaterial = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.BackSide} );
+	var rmaterial = new THREE.MeshBasicMaterial( {color: 0xff0000, side: THREE.BackSide} );
+	var bmaterial = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.BackSide} );
+	var planeDist = 3.5;
+	yellowPlane = new THREE.Mesh( geometry, ymaterial );
+	redPlane = new THREE.Mesh( geometry, rmaterial );
+	bluePlane = new THREE.Mesh( geometry, bmaterial );
+	yellowPlane.position.y = -planeDist;
+	yellowPlane.rotation.x = Math.PI / 2;
+	redPlane.position.z = -planeDist;
+	redPlane.rotation.x = Math.PI;
+	bluePlane.position.x = -planeDist;
+	bluePlane.rotation.y = -Math.PI / 2;
+	cubes.add(yellowPlane);
+	cubes.add(redPlane);
+	cubes.add(bluePlane);
+	
 	scene.add( cubes );
 	
 	cubes.position.y = 20;
