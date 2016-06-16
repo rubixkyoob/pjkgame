@@ -41,6 +41,7 @@ document.body.appendChild( renderer.domElement );
 
 var cubes = new THREE.Object3D();
 var currState = cubeState.LERPING;
+var raycaster = new THREE.Raycaster();
 
 // Event Listeners
 window.addEventListener('resize', resizeCanvas, false);
@@ -57,11 +58,25 @@ function resizeCanvas() {
 }
 
 function onMouseDown( event ) {
+	event.preventDefault();
 	
+	mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+	mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+	
+	raycaster.setFromCamera(mouse, camera);
+	var intersects = raycaster.intersectObjects(objects);
+	
+	if(intersects.length > 0) {
+		// object selected can be found in intersects[0]
+	}
 }
 
 function onTouchStart( event ) {
+	event.preventDefault();
 	
+	event.clientX = event.touches[0].clientX;
+	event.clientY = event.touches[0].clientY;
+	onMouseDown(event);
 }
 
 function mouseOver( event ) {
