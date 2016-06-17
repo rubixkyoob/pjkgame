@@ -1,17 +1,17 @@
 // Main script
 
-var sqrSize = Math.min(window.innerWidth, window.innerHeight );
-var wWidth;
-var wHeight;
+var mouse = {x: 0, y: 0};
 
 var deltaTime = 1;
 var lastTick = Date.now();
 
+// position animation vars
 var finalPosition = { x: 0, y: 0, z: 0 };
 var moveSpeed = 1;
 var oscillSpeed = 0.01;
 var moveThreshold = 0.2;	//distance from finalPosition to start oscillating
 
+// rotation animation vars
 var fixedRotation = {
 	x: Math.PI + 0.4,
 	y: -0.9,
@@ -21,30 +21,33 @@ var minRotDist = 8;
 var isRotating = false;
 var snapBackSpeed = 1;
 
-
-function init() {
-	wWidth = sqrSize;
-	wHeight = sqrSize;
-}
-
-init();
+// selection vars
+var fadeSpeed = 2;
+var maxOpacity = 0.8;
+var minOpactiy = 0.001;
 
 // Init the three.js scene and global vars
 var scene = new THREE.Scene();
 //var camera = new THREE.OrthographicCamera( wWidth / - 20, wWidth / 20, wHeight / 20, wHeight / - 20, 1, 1000 )
-var camera = new THREE.PerspectiveCamera( 75, wWidth/wHeight, 0.1, 1000 );
+var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
 var renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize( wWidth, wHeight );
+renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setClearColor( 0xffffff, 1);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.gammaInput = true;
+renderer.gammaOutput = true;
 document.body.appendChild( renderer.domElement );
 
 var cubes = new THREE.Object3D();
 var yellowPlane = new THREE.Object3D();
 var redPlane = new THREE.Object3D();
 var bluePlane = new THREE.Object3D();
+var planes = [yellowPlane, redPlane, bluePlane];
 var currState = cubeState.LERPING;
 var raycaster = new THREE.Raycaster();
+
 
 // Event Listeners
 window.addEventListener('resize', resizeCanvas, false);
@@ -62,15 +65,16 @@ function resizeCanvas() {
 
 function onMouseDown( event ) {
 	event.preventDefault();
-	
-	mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-	mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+	debug.innerHTML = "here";
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 	
 	raycaster.setFromCamera(mouse, camera);
-	var intersects = raycaster.intersectObjects(objects);
+	var intersects = raycaster.intersectObjects(planes);
 	
 	if(intersects.length > 0) {
 		// object selected can be found in intersects[0]
+		debug.innerHTML = intersects[0].object.material.opacity = maxOpacity;
 	}
 }
 
@@ -108,16 +112,22 @@ function mouseOver( event ) {
 		isRotating = false;
 	
 	
-	debug.innerHTML = "x: " + pos.x + " y: " + pos.y;
+	//debug.innerHTML = "x: " + pos.x + " y: " + pos.y;
 }
 
 function initScene() {
 	// Lights
-	var amientLight = new THREE.AmbientLight(0xffffff)
+	var amientLight = new THREE.AmbientLight(0xffffff, 0.2)
 	scene.add(amientLight);
-	var directionalLight = new THREE.DirectionalLight(0xffffff);
+	var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 	directionalLight.position.set(0,1,0);
 	scene.add(directionalLight);
+	directionalLight.castShadow = true;
+	directionalLight.shadow.camera.visible = true;
+	directionalLight.shadow.mapSize.width = 1024;
+	directionalLight.shadow.mapSize.height = 1024;
+	directionalLight.shadow.camera.near = 1;
+	directionalLight.shadow.camera.far = 200;
 	
 	var cubeSize = 7;
 	
@@ -140,26 +150,26 @@ function initScene() {
 					cubie.position.y = j*2.2;
 					cubie.position.z = k*2.2;
 					cubes.add(cubie);
+					cubie.castShadow = true;
 				}
 			}
 		}
 	});
 	
 	
-	var geometry2 = new THREE.BoxGeometry( cubeSize * 0.92, cubeSize * 0.92, cubeSize * 0.92 );
-	var material2 = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+	var geometry2 = new THREE.BoxGeometry( 30, 1, 30 );
+	var material2 = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 	var cube2 = new THREE.Mesh( geometry2, material2 );
-	//cube2.position.x += 0.22;
-	//cube2.position.y += 0.22;
-	//cube2.position.z += 0.22;
-	//cubes.add(cube2);
+	cube2.position.y -= 8;
+	scene.add(cube2);
+	cube2.receiveShadow = true;
 	
 	// Selector planes geometry
 	var planeSize = 7;
 	var geometry = new THREE.PlaneGeometry( planeSize, planeSize, 1, 1 );
-	var ymaterial = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.BackSide} );
-	var rmaterial = new THREE.MeshBasicMaterial( {color: 0xff0000, side: THREE.BackSide} );
-	var bmaterial = new THREE.MeshBasicMaterial( {color: 0x0000ff, side: THREE.BackSide} );
+	var ymaterial = new THREE.MeshBasicMaterial( {color: 0xffff00, transparent: true, opacity: 0} );
+	var rmaterial = new THREE.MeshBasicMaterial( {color: 0xff0000, transparent: true, opacity: 0} );
+	var bmaterial = new THREE.MeshBasicMaterial( {color: 0x0000ff, transparent: true, opacity: 0} );
 	var planeDist = 3.5;
 	yellowPlane = new THREE.Mesh( geometry, ymaterial );
 	redPlane = new THREE.Mesh( geometry, rmaterial );
@@ -173,6 +183,7 @@ function initScene() {
 	cubes.add(yellowPlane);
 	cubes.add(redPlane);
 	cubes.add(bluePlane);
+	planes = [yellowPlane, redPlane, bluePlane];
 	
 	scene.add( cubes );
 	
@@ -232,12 +243,18 @@ function updateCubes() {
 	cubes.position.y += cubes.velocity.y;
 	cubes.position.z += cubes.velocity.z;
 	
-	//update rotation
+	// update rotation
 	if(!isRotating) {
 		// Lerp back to origin
 		var rotDist = getDistance(cubes.rotation, fixedRotation);
 		cubes.rotation.x += (deltaTime * snapBackSpeed * rotDist.x);
 		cubes.rotation.y += (deltaTime * snapBackSpeed * rotDist.y);
+	}
+	
+	// update selection panels
+	for(var i = 0; i < planes.length; i++) {
+		if(planes[i].material.opacity > minOpactiy)
+			planes[i].material.opacity -= (deltaTime * fadeSpeed);
 	}
 }
 
