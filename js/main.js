@@ -30,9 +30,11 @@ var minOpactiy = 0.001;
 var scene = new THREE.Scene();
 //var camera = new THREE.OrthographicCamera( wWidth / - 20, wWidth / 20, wHeight / 20, wHeight / - 20, 1, 1000 )
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+var canvas = document.getElementById("cubeCanvas");
 
-var renderer = new THREE.WebGLRenderer({ antialias: true });
+var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor( 0xffffff, 1);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -51,7 +53,7 @@ var raycaster = new THREE.Raycaster();
 
 // Event Listeners
 window.addEventListener('resize', resizeCanvas, false);
-document.getElementsByTagName('canvas')[0].addEventListener( 'mousemove', mouseOver );
+canvas.addEventListener( 'mousemove', mouseOver );
 document.addEventListener( 'mousedown', onMouseDown, false);
 document.addEventListener( 'touchstart', onTouchStart, false);
 
@@ -65,7 +67,6 @@ function resizeCanvas() {
 
 function onMouseDown( event ) {
 	event.preventDefault();
-	debug.innerHTML = "here";
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 	
@@ -74,7 +75,13 @@ function onMouseDown( event ) {
 	
 	if(intersects.length > 0) {
 		// object selected can be found in intersects[0]
-		debug.innerHTML = intersects[0].object.material.opacity = maxOpacity;
+		intersects[0].object.material.opacity = maxOpacity;
+		//debug.innerHTML = intersects[0].object.material.opacity;
+		switch(intersects[0].object.material.color.getHex()) {
+			case 0xffff00: selectedYellow(); break;
+			case 0xff0000: selectedRed(); break;
+			case 0x0000ff: selectedBlue(); break;
+		}
 	}
 }
 
@@ -115,6 +122,18 @@ function mouseOver( event ) {
 	//debug.innerHTML = "x: " + pos.x + " y: " + pos.y;
 }
 
+function selectedYellow() {
+	debug.innerHTML = "Yellow";
+}
+
+function selectedRed() {
+	debug.innerHTML = "Red";
+}
+
+function selectedBlue() {
+	debug.innerHTML = "Blue";
+}
+
 function initScene() {
 	// Lights
 	var amientLight = new THREE.AmbientLight(0xffffff, 0.2)
@@ -124,8 +143,8 @@ function initScene() {
 	scene.add(directionalLight);
 	directionalLight.castShadow = true;
 	directionalLight.shadow.camera.visible = true;
-	directionalLight.shadow.mapSize.width = 1024;
-	directionalLight.shadow.mapSize.height = 1024;
+	directionalLight.shadow.mapSize.width = window.innerWidth;
+	directionalLight.shadow.mapSize.height = window.innerHeight;
 	directionalLight.shadow.camera.near = 1;
 	directionalLight.shadow.camera.far = 200;
 	
@@ -145,12 +164,14 @@ function initScene() {
 		for(var i = -1; i < 2; i++) {
 			for(var j = -1; j < 2; j++) {
 				for(var k = -1; k < 2; k++) {
-					cubie = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
-					cubie.position.x = i*2.2;
-					cubie.position.y = j*2.2;
-					cubie.position.z = k*2.2;
-					cubes.add(cubie);
-					cubie.castShadow = true;
+					if(!(i == 0 && j == 0 && k == 0)) {
+						cubie = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial(materials) );
+						cubie.position.x = i*2.2;
+						cubie.position.y = j*2.2;
+						cubie.position.z = k*2.2;
+						cubes.add(cubie);
+						cubie.castShadow = true;
+					}
 				}
 			}
 		}
@@ -160,7 +181,7 @@ function initScene() {
 	var geometry2 = new THREE.BoxGeometry( 30, 1, 30 );
 	var material2 = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 	var cube2 = new THREE.Mesh( geometry2, material2 );
-	cube2.position.y -= 8;
+	cube2.position.y -= 6.5;
 	scene.add(cube2);
 	cube2.receiveShadow = true;
 	
