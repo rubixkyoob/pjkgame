@@ -123,15 +123,15 @@ function mouseOver( event ) {
 }
 
 function selectedYellow() {
-	debug.innerHTML = "Yellow";
+	renderer.setClearColor( 0xffff00, 1);
 }
 
 function selectedRed() {
-	debug.innerHTML = "Red";
+	renderer.setClearColor( 0xff0000, 1);
 }
 
 function selectedBlue() {
-	debug.innerHTML = "Blue";
+	renderer.setClearColor( 0x0000ff, 1);
 }
 
 function initScene() {
