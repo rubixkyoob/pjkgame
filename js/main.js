@@ -75,7 +75,7 @@ function onMouseDown( event ) {
 	
 	if(intersects.length > 0) {
 		// object selected can be found in intersects[0]
-		intersects[0].object.material.opacity = maxOpacity;
+		//intersects[0].object.material.opacity = maxOpacity;
 		//debug.innerHTML = intersects[0].object.material.opacity;
 		switch(intersects[0].object.material.color.getHex()) {
 			case 0xffff00: selectedYellow(); break;
@@ -100,6 +100,22 @@ function mouseOver( event ) {
 		( event.clientX / window.innerWidth ) * 2 - 1,
 		- ( event.clientY / window.innerHeight ) * 2 + 1,
 		0.5 );
+		
+	raycaster.setFromCamera(vector, camera);
+	var intersects = raycaster.intersectObjects(planes);
+	
+	if(intersects.length > 0) {
+		for (var i = 0; i < planes.length; i++) {
+			planes[i].selected = (intersects[0].object === planes[i]);
+		}
+	}
+	else {
+		for (var i = 0; i < planes.length; i++) {
+			planes[i].selected = false;
+		}
+	}
+	
+	
 	
 	vector.unproject( camera );
 	
@@ -123,15 +139,24 @@ function mouseOver( event ) {
 }
 
 function selectedYellow() {
-	renderer.setClearColor( 0xffff00, 1);
+	//renderer.setClearColor( 0xffff00, 1);
+	currState = cubeState.EXITING;
+	cubes.acceleration.y = 0.5;
+	cubes.velocity.y = -1.5;
 }
 
 function selectedRed() {
-	renderer.setClearColor( 0xff0000, 1);
+	//renderer.setClearColor( 0xff0000, 1);
+	currState = cubeState.EXITING;
+	cubes.acceleration.x = 0.5;
+	cubes.velocity.x = -2.0;
 }
 
 function selectedBlue() {
-	renderer.setClearColor( 0x0000ff, 1);
+	//renderer.setClearColor( 0x0000ff, 1);
+	currState = cubeState.EXITING;
+	cubes.acceleration.x = -0.5;
+	cubes.velocity.x = 2.0;
 }
 
 function initScene() {
@@ -204,6 +229,9 @@ function initScene() {
 	cubes.add(yellowPlane);
 	cubes.add(redPlane);
 	cubes.add(bluePlane);
+	yellowPlane.selected = false;
+	redPlane.selected = false;
+	bluePlane.selected = false;
 	planes = [yellowPlane, redPlane, bluePlane];
 	
 	scene.add( cubes );
@@ -251,6 +279,10 @@ function updateCubes() {
 			else if(cubes.position.y < -moveThreshold)
 				cubes.position.y = -moveThreshold;
 			break;
+		case cubeState.EXITING:
+			
+			
+			break;
 		default:
 		
 			break;
@@ -274,8 +306,11 @@ function updateCubes() {
 	
 	// update selection panels
 	for(var i = 0; i < planes.length; i++) {
-		if(planes[i].material.opacity > minOpactiy)
-			planes[i].material.opacity -= (deltaTime * fadeSpeed);
+		if(planes[i].selected)
+			planes[i].material.opacity = maxOpacity;
+		else
+			if(planes[i].material.opacity > minOpactiy)
+				planes[i].material.opacity -= (deltaTime * fadeSpeed);
 	}
 }
 
